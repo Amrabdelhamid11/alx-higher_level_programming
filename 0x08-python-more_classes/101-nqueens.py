@@ -1,68 +1,66 @@
 #!/usr/bin/python3
-"""this module contains a function that solves the N queens problem"""
+"""N queens puzzle solver"""
 
 
-import sys
+from sys import argv
 
+if len(argv) != 2:
+    print("Usage: nqueens N")
+    exit(1)
 
-def is_safe(board, row, col, N):
-    # Check if there is a queen in the same column
-    for i in range(row):
-        if board[i][col] == 1:
-            return False
+N = 0
 
-    # Check upper left diagonal
-    for i, j in zip(range(row, -1, -1), range(col, -1, -1)):
-        if board[i][j] == 1:
-            return False
-
-    # Check upper right diagonal
-    for i, j in zip(range(row, -1, -1), range(col, N)):
-        if board[i][j] == 1:
-            return False
-
-    return True
-
-
-def solve_nqueens_util(board, row, N, solutions):
-    if row == N:
-        solutions.append([[i, board[i].index(1)] for i in range(N)])
-        return
-
-    for col in range(N):
-        if is_safe(board, row, col, N):
-            board[row][col] = 1
-            solve_nqueens_util(board, row + 1, N, solutions)
-            board[row][col] = 0
-
-
-def solve_nqueens(N):
-    if not isinstance(N, int):
-        print("N must be a number")
-        sys.exit(1)
+try:
+    N = int(argv[1])
 
     if N < 4:
         print("N must be at least 4")
-        sys.exit(1)
+        exit(1)
+except Exception:
+    print("N must be a number")
+    exit(1)
 
-    board = [[0 for _ in range(N)] for _ in range(N)]
-    solutions = []
-
-    solve_nqueens_util(board, 0, N, solutions)
-
-    for solution in solutions:
-        print(solution)
+full_cols = set()
+full_positve_d = set()
+full_negtive_d = set()
+c_solution = []
+solutions = []
 
 
-if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print("Usage: {} N".format(sys.argv[0]))
-        sys.exit(1)
+def get_solutions(row):
+    """get all possible solutions"""
+    for col in range(N):
+        if (
+            col in full_cols
+            or (row - col) in full_positve_d
+            or (row + col) in full_negtive_d
+        ):
+            continue
+        add_new(row, col)
+        if row == N - 1:
+            solutions.append(c_solution.copy())
+            remove_old(row, col)
+            return
+        get_solutions(row + 1)
+        remove_old(row, col)
 
-    try:
-        N = int(sys.argv[1])
-    except ValueError:
-        print("N must be a number")
-        sys.exit(1)
 
-    solve_nqueens(N)
+def add_new(row, col):
+    """add a new node"""
+    c_solution.append([row, col])
+    full_cols.add(col)
+    full_positve_d.add(row - col)
+    full_negtive_d.add(row + col)
+
+
+def remove_old(row, col):
+    """remove an old node"""
+    c_solution.remove([row, col])
+    full_cols.remove(col)
+    full_positve_d.remove(row - col)
+    full_negtive_d.remove(row + col)
+
+
+get_solutions(0)
+for solution in solutions:
+    print(solution)
